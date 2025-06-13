@@ -12,6 +12,8 @@ import {
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
+import { verifySecret } from "@/lib/action/user.action";
+import { useRouter } from "next/navigation";
 
 export const OtpModel = ({
   accountId,
@@ -20,14 +22,26 @@ export const OtpModel = ({
   email: string;
   accountId: string;
 }) => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log("password: ", password, "accountId: ", accountId);
-    setIsOpen(false);
+    setIsLoading(true);
+
+    try {
+      const sessionId = await verifySecret({ accountId, password });
+
+      if (sessionId) {
+        router.push("/");
+      }
+    } catch (error) {
+      console.log("failed to verify otp: ", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -2,8 +2,9 @@
 
 import { appwrite } from "@/constant/appwriteConstant";
 import { createAdminSession } from "../appwriteConfig";
-import { Query, Account, ID } from "node-appwrite";
+import { Query, ID } from "node-appwrite";
 import { parseStringify } from "@/utils/utils";
+import { cookies } from "next/headers";
 
 const getUserByEmail = async (email: string) => {
   const { databases } = await createAdminSession();
@@ -55,4 +56,32 @@ export const createAccount = async ({
   }
 
   return parseStringify({ accountId });
+};
+
+export const verifySecret = async ({
+  accountId,
+  password,
+}: {
+  accountId: string;
+  password: string;
+}) => {
+  console.log("At verify password: ", password, "accountid: ", accountId);
+
+  try {
+    const { account } = await createAdminSession();
+
+    const session = await account.createSession(accountId, password);
+
+    (await cookies()).set("appwrite-session", session.secret, {
+      httpOnly: true,
+      secure: true,
+      path: "/",
+      sameSite: "strict",
+    });
+
+    return parseStringify({ sessionId: session.$id });
+  } catch (error) {
+    console.log("Verify Otp error", error);
+    throw new Error("Verify Otp failed");
+  }
 };

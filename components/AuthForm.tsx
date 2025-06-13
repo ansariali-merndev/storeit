@@ -31,7 +31,7 @@ const authFormSchema = (formType: FormType) => {
 };
 
 export default function AuthForm({ type }: { type: FormType }) {
-  const [accountId, setAccountId] = useState("null");
+  const [accountId, setAccountId] = useState(null);
   const [isError, setIsError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -118,7 +118,7 @@ export default function AuthForm({ type }: { type: FormType }) {
         </form>
         {isError && <p>Error: {isError}</p>}
       </Form>
-      {true && (
+      {accountId && (
         <OtpModel email={form.getValues("email")} accountId={accountId} />
       )}
     </>
