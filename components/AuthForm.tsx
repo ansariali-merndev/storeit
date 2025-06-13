@@ -14,6 +14,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { createAccount } from "@/lib/action/user.action";
+import { useState } from "react";
 
 type FormType = "sign-in" | "sign-up";
 
@@ -28,6 +30,10 @@ const authFormSchema = (formType: FormType) => {
 };
 
 export default function AuthForm({ type }: { type: FormType }) {
+  const [accountId, setAccountId] = useState(null);
+  const [isError, setIsError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const formSchema = authFormSchema(type);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,7 +44,20 @@ export default function AuthForm({ type }: { type: FormType }) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    setIsLoading(true);
+    setIsError("");
+    try {
+      const user = await createAccount({
+        fullname: values.fullname || "",
+        email: values.email,
+      });
+      setAccountId(user.accountId);
+    } catch (error: any) {
+      console.error(error);
+      setIsError(error?.message || "Unable to create account");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -88,12 +107,14 @@ export default function AuthForm({ type }: { type: FormType }) {
           )}
         />
         <Button
+          disabled={isLoading}
           className="bg-red-400 hover:bg-red-300 w-full cursor-pointer transition-all rounded-full"
           type="submit"
         >
-          Submit
+          {isLoading ? "Please wait" : "submit"}
         </Button>
       </form>
+      {isError && <p>Error: {isError}</p>}
     </Form>
   );
 }
