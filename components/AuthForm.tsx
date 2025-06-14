@@ -14,9 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createAccount } from "@/lib/action/user.action";
+import { createAccount, signInUser } from "@/lib/action/user.action";
 import { useState } from "react";
 import { OtpModel } from "./OtpModel";
+import Link from "next/link";
 
 type FormType = "sign-in" | "sign-up";
 
@@ -47,12 +48,23 @@ export default function AuthForm({ type }: { type: FormType }) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setIsError("");
+
     try {
-      const user = await createAccount({
-        fullname: values.fullname || "",
-        email: values.email,
-      });
-      setAccountId(user.accountId);
+      let response;
+      if (type === "sign-up") {
+        response = await createAccount({
+          fullName: values.fullname || "",
+          email: values.email,
+        });
+      } else {
+        response = await signInUser({ email: values.email });
+      }
+
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+
+      setAccountId(response.accountId);
     } catch (error: any) {
       console.error(error);
       setIsError(error?.message || "Unable to create account");
@@ -116,6 +128,17 @@ export default function AuthForm({ type }: { type: FormType }) {
             {isLoading ? "Please wait" : "submit"}
           </Button>
         </form>
+        <div className="flex gap-2 text-sm my-1 items-center justify-center white">
+          <p className="text-sm">
+            {type === "sign-in"
+              ? "Don't have an account"
+              : "Already have an account"}
+            ?
+          </p>
+          <Link href={type === "sign-in" ? "/sign-up" : "/sign-in"}>
+            {type === "sign-in" ? "Create Account" : "Login"}
+          </Link>
+        </div>
         {isError && <p>Error: {isError}</p>}
       </Form>
       {accountId && (

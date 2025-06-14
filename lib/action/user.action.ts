@@ -1,10 +1,11 @@
 "use server";
 
 import { appwrite } from "@/constant/appwriteConstant";
-import { createAdminSession } from "../appwriteConfig";
-import { Query, ID } from "node-appwrite";
+import { createAdminSession, createSessionClient } from "../appwriteConfig";
+import { Query, ID, Client, Account } from "node-appwrite";
 import { parseStringify } from "@/utils/utils";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const getUserByEmail = async (email: string) => {
   const { databases } = await createAdminSession();
@@ -20,8 +21,8 @@ const getUserByEmail = async (email: string) => {
 const sendEmailOTP = async (email: string) => {
   const { account } = await createAdminSession();
   try {
-    const session = await account.createEmailToken(ID.unique(), email);
-    return session.userId;
+    const token = await account.createEmailToken(ID.unique(), email);
+    return token.userId;
   } catch (error) {
     console.error("Error sending OTP:", error);
     throw new Error("Failed to send OTP");
@@ -29,10 +30,10 @@ const sendEmailOTP = async (email: string) => {
 };
 
 export const createAccount = async ({
-  fullname,
+  fullName,
   email,
 }: {
-  fullname: string;
+  fullName: string;
   email: string;
 }) => {
   const existinguser = await getUserByEmail(email);
@@ -47,9 +48,9 @@ export const createAccount = async ({
       appwrite.userCollection,
       ID.unique(),
       {
-        fullName: fullname,
+        fullName,
         email,
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${fullname}`,
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`,
         accountId,
       }
     );
@@ -65,8 +66,6 @@ export const verifySecret = async ({
   accountId: string;
   password: string;
 }) => {
-  console.log("At verify password: ", password, "accountid: ", accountId);
-
   try {
     const { account } = await createAdminSession();
 
@@ -74,7 +73,7 @@ export const verifySecret = async ({
 
     (await cookies()).set("appwrite-session", session.secret, {
       httpOnly: true,
-      secure: true,
+      maxAge: 60 * 60 * 24 * 7,
       path: "/",
       sameSite: "strict",
     });
@@ -83,5 +82,66 @@ export const verifySecret = async ({
   } catch (error) {
     console.log("Verify Otp error", error);
     throw new Error("Verify Otp failed");
+  }
+};
+
+export const getCurrentUser = async () => {
+  try {
+    const { databases, account } = await createSessionClient();
+    const result = await account.get();
+
+    const user = await databases.listDocuments(
+      appwrite.dbId,
+      appwrite.userCollection,
+      [Query.equal("accountId", result.$id)]
+    );
+
+    if (user.total <= 0) return null;
+    return parseStringify(user.documents[0]);
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const signInUser = async ({ email }: { email: string }) => {
+  try {
+    const existingUser = await getUserByEmail(email);
+
+    if (!existingUser) {
+      throw new Error("user not found please sign in first");
+    }
+
+    const otpResponse = await sendEmailOTP(email);
+
+    if (!otpResponse) {
+      throw new Error("Failed to send OTP, Please try again");
+    }
+
+    console.log(existingUser.accountId);
+    return parseStringify({
+      success: true,
+      accountId: existingUser.accountId,
+    });
+  } catch (error: any) {
+    console.error("SignIn Error:", error.message);
+    return parseStringify({
+      success: false,
+      error: error.message || "Failed to sign in user",
+      accountId: null,
+    });
+  }
+};
+
+export const signOutUser = async () => {
+  const { account } = await createSessionClient();
+
+  try {
+    await account.deleteSession("current");
+    (await cookies()).delete("appwrite-session");
+  } catch (error) {
+    console.log("Sign out Error: ", error);
+  } finally {
+    redirect("/sign-in");
   }
 };

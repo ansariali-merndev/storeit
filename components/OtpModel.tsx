@@ -32,13 +32,15 @@ export const OtpModel = ({
     setIsLoading(true);
 
     try {
-      const sessionId = await verifySecret({ accountId, password });
+      const result = await verifySecret({ accountId, password });
 
-      if (sessionId) {
+      if (result?.sessionId) {
+        router.refresh();
         router.push("/");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("failed to verify otp: ", error);
+      alert(error.message || "Invalid OTP. Please try again.");
     } finally {
       setIsLoading(false);
     }
