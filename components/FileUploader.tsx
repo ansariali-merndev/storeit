@@ -8,11 +8,13 @@ import { Thambnail } from "./Thumbnail";
 import { MAX_FILE_SIZE } from "@/constant";
 import { toast } from "sonner";
 import { uploadFile } from "@/lib/action/file.action";
+import { useRouter } from "next/navigation";
 
 export const FileUploader = ({ ...currentUser }) => {
   const [files, setFiles] = useState<File[]>([]);
 
   const user = { ...currentUser };
+  const router = useRouter();
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -37,7 +39,10 @@ export const FileUploader = ({ ...currentUser }) => {
                 setFiles((prev) => prev.filter((f) => f.name !== file.name));
               }
             })
-            .then(() => toast("File uploaded successfully"));
+            .then(() => {
+              toast("File uploaded successfully");
+              router.refresh();
+            });
         } catch (error) {
           console.log("upload failed error: ", error);
           return toast("File Upload Failed");

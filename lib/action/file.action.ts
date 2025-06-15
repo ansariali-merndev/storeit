@@ -1,9 +1,9 @@
 "use server";
 
 import { InputFile } from "node-appwrite/file";
-import { createAdminSession } from "../appwriteConfig";
+import { createAdminSession, createSessionClient } from "../appwriteConfig";
 import { appwrite } from "@/constant/appwriteConstant";
-import { ID } from "node-appwrite";
+import { ID, Permission, Query, Role } from "node-appwrite";
 import { constructFileUrl, getFileExtension } from "../utils";
 
 interface uploadFile {
@@ -27,7 +27,8 @@ export const uploadFile = async ({
     bucketFile = await storage.createFile(
       appwrite.bucket,
       ID.unique(),
-      inputFile
+      inputFile,
+      [Permission.read("any")]
     );
 
     const { type, extension } = getFileExtension(bucketFile.name);
@@ -64,6 +65,30 @@ export const uploadFile = async ({
       }
     }
 
+    throw error;
+  }
+};
+
+export const getUserFiles = async () => {
+  const { account, databases } = await createSessionClient();
+
+  try {
+    const currentUser = await account.get();
+
+    const userDoc = await databases.listDocuments(
+      appwrite.dbId,
+      appwrite.userCollection,
+      [Query.equal("accountId", currentUser.$id)]
+    );
+
+    const result = await databases.listDocuments(
+      appwrite.dbId,
+      appwrite.fileCollection,
+      [Query.equal("owner", userDoc.documents[0].$id)]
+    );
+    return result.documents;
+  } catch (error) {
+    console.log("Get user file Error: ", error);
     throw error;
   }
 };
