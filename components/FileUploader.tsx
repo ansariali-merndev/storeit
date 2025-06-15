@@ -5,13 +5,49 @@ import { useDropzone } from "react-dropzone";
 import { Button } from "./ui/button";
 import { getFileExtension, convertFileToUrl } from "@/lib/utils";
 import { Thambnail } from "./Thumbnail";
+import { MAX_FILE_SIZE } from "@/constant";
+import { toast } from "sonner";
+import { uploadFile } from "@/lib/action/file.action";
 
-export const FileUploader = () => {
+export const FileUploader = ({ ...currentUser }) => {
   const [files, setFiles] = useState<File[]>([]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles(acceptedFiles);
-  }, []);
+  const user = { ...currentUser };
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      setFiles(acceptedFiles);
+
+      const uploadPromises = acceptedFiles.map(async (file) => {
+        if (file.size > MAX_FILE_SIZE) {
+          setFiles((prev) => prev.filter((f) => f.name !== file.name));
+
+          return toast("File has been max size");
+        }
+
+        try {
+          return uploadFile({
+            file,
+            ownerId: user.$id,
+            accountId: user.accountId,
+            path: "uploads",
+          })
+            .then((uploadedFile) => {
+              if (uploadedFile) {
+                setFiles((prev) => prev.filter((f) => f.name !== file.name));
+              }
+            })
+            .then(() => toast("File uploaded successfully"));
+        } catch (error) {
+          console.log("upload failed error: ", error);
+          return toast("File Upload Failed");
+        }
+      });
+
+      await Promise.all(uploadPromises);
+    },
+    [user]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 

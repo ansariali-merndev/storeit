@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { getCurrentUser } from "@/lib/action/user.action";
 import { redirect } from "next/navigation";
+import { Toaster } from "sonner";
 
 export default async function HomeLayout({
   children,
@@ -13,6 +14,7 @@ export default async function HomeLayout({
   if (!currentUser) {
     return redirect("/sign-in");
   }
+
   const { fullName, avatar, email } = currentUser;
   return (
     <div className="flex flex-col min-h-screen">
@@ -20,8 +22,8 @@ export default async function HomeLayout({
         <Sidebar fullName={fullName} avatar={avatar} email={email} />
 
         <div className="flex-1 flex flex-col">
-          <Header />
-
+          <Header {...currentUser} />
+          <Toaster richColors position="top-center" />
           <main className="flex-1 p-4">{children}</main>
         </div>
       </div>
