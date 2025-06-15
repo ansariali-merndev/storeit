@@ -2,7 +2,7 @@
 
 import { appwrite } from "@/constant/appwriteConstant";
 import { createAdminSession, createSessionClient } from "../appwriteConfig";
-import { Query, ID, Client, Account } from "node-appwrite";
+import { Query, ID } from "node-appwrite";
 import { parseStringify } from "@/utils/utils";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -124,10 +124,16 @@ export const signInUser = async ({ email }: { email: string }) => {
       accountId: existingUser.accountId,
     });
   } catch (error: any) {
-    console.error("SignIn Error:", error.message);
+    const errorMessage =
+      typeof error === "object" && error !== null && "message" in error
+        ? (error as Error).message
+        : String(error);
+
+    console.error("SignIn Error:", errorMessage);
+
     return parseStringify({
       success: false,
-      error: error.message || "Failed to sign in user",
+      error: errorMessage || "Failed to sign in user",
       accountId: null,
     });
   }

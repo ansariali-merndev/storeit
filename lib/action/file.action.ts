@@ -3,22 +3,16 @@
 import { InputFile } from "node-appwrite/file";
 import { createAdminSession, createSessionClient } from "../appwriteConfig";
 import { appwrite } from "@/constant/appwriteConstant";
-import { ID, Permission, Query, Role } from "node-appwrite";
+import { ID, Permission, Query } from "node-appwrite";
 import { constructFileUrl, getFileExtension } from "../utils";
 
 interface uploadFile {
   file: File;
   ownerId: string;
   accountId: string;
-  path: string;
 }
 
-export const uploadFile = async ({
-  file,
-  ownerId,
-  accountId,
-  path,
-}: uploadFile) => {
+export const uploadFile = async ({ file, ownerId, accountId }: uploadFile) => {
   const { storage, databases } = await createAdminSession();
   let bucketFile;
 

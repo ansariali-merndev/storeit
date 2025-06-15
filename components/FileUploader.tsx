@@ -32,7 +32,6 @@ export const FileUploader = ({ ...currentUser }) => {
             file,
             ownerId: user.$id,
             accountId: user.accountId,
-            path: "uploads",
           })
             .then((uploadedFile) => {
               if (uploadedFile) {
