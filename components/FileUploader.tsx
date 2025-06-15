@@ -79,7 +79,7 @@ export const FileUploader = ({ ...currentUser }) => {
             return (
               <li
                 key={index}
-                className="grid grid-cols-[0.5fr_1fr] w-50 bg-sky-100 items-center justify-center py-2"
+                className="grid grid-cols-[0.5fr_1fr] w-50 bg-sky-100 items-center justify-center py-2 z-50"
               >
                 <Thambnail
                   type={type}

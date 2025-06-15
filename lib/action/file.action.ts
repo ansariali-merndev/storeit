@@ -92,3 +92,23 @@ export const getUserFiles = async () => {
     throw error;
   }
 };
+
+interface DeleteFile {
+  documentId: string;
+}
+
+export const deleteUserFile = async ({ documentId }: DeleteFile) => {
+  const { databases } = await createAdminSession();
+
+  try {
+    await databases.deleteDocument(
+      appwrite.dbId,
+      appwrite.fileCollection,
+      documentId
+    );
+    return true;
+  } catch (error) {
+    console.log("Deleting User File error: ", error);
+    return false;
+  }
+};
