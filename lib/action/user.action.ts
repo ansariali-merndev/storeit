@@ -123,7 +123,7 @@ export const signInUser = async ({ email }: { email: string }) => {
       success: true,
       accountId: existingUser.accountId,
     });
-  } catch (error: any) {
+  } catch (error) {
     const errorMessage =
       typeof error === "object" && error !== null && "message" in error
         ? (error as Error).message

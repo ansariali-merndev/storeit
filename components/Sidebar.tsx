@@ -61,9 +61,11 @@ export default function Sidebar({
         ))}
       </ul>
       <div className="flex flex-col gap-2 justify-end items-center lg:items-start">
-        <img
+        <Image
           src={avatar}
           alt=""
+          width={30}
+          height={30}
           className="w-8 h-8 rounded-full cursor-pointer"
         />
         <div className="text-xs hidden lg:block">

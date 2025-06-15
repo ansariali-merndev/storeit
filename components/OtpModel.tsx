@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 
 export const OtpModel = ({
   accountId,
-  email,
 }: {
   email: string;
   accountId: string;
@@ -38,9 +37,9 @@ export const OtpModel = ({
         router.refresh();
         router.push("/");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log("failed to verify otp: ", error);
-      alert(error.message || "Invalid OTP. Please try again.");
+      alert("Invalid OTP. Please try again.");
     } finally {
       setIsLoading(false);
     }

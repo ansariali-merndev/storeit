@@ -13,7 +13,14 @@ const nextConfig: NextConfig = {
         hostname: "cloud.appwrite.io",
         pathname: "/v1/storage/buckets/**",
       },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com",
+        pathname: "/7.x/initials/svg*",
+      },
     ],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 
